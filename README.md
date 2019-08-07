@@ -3,6 +3,9 @@ Java wrapper for Salesforce's SFDX CLI
 
 **This is currently a work in progress!**
 
+## Dependencies
+* gson
+
 ## Contributing
 
 I'm writing each sfdx command as individual methods, using a builder pattern for the params.

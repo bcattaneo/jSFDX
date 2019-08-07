@@ -44,6 +44,7 @@ public class JSfdx {
         // Access any of the type attributes:
         // Get access token of your first org
         System.out.println(forceOrgListCmd.getResult().getNonScratchOrgs()[0].getAccessToken());
+        //System.out.println(forceOrgListCmd.getStatus());
     }
     
 }

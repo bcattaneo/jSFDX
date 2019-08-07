@@ -9,41 +9,37 @@ public class ShellUtils {
     
     private static final String HOME_FOLDER = "user.home";
     public enum OS {WINDOWS, LINUX};
-    public static final String WINDOWS_CMD = "cmd /c %s";
+    public static final String WINDOWS_CMD = "cmd.exe /c %s";
     
     public static String execute(String command) throws IOException, InterruptedException {
         StringBuilder output = new StringBuilder();
-        String homeFolder = getHomeFolder();
+        String cmd = command;
         OS runningOs = getRunningOs();
         Process process;
-        BufferedReader inputReader, errorReader;
+        BufferedReader inputReader;
         
-        if (runningOs == OS.LINUX) {
-            process = Runtime.getRuntime().exec(command);   
-        } else {
-            process = Runtime.getRuntime().exec(
-                String.format(WINDOWS_CMD, command), null, new File(homeFolder));
-        }
+        // For windows, we need to chain commands with cmd.exe
+        if (runningOs == OS.WINDOWS)
+            cmd = String.format(WINDOWS_CMD, command);
+        
+        // Run process redirecting stderr
+        process = new ProcessBuilder().redirectErrorStream(true)
+                .command(commandsToArray(cmd))
+                .start();
 
+        // Get stdout stream
         inputReader = new BufferedReader(
                 new InputStreamReader(process.getInputStream()));
-          
-        // TODO: Handle errors.
-        //errorReader = new BufferedReader(
-        //        new InputStreamReader(process.getErrorStream()));
 
+        // Read stdout
         String line;
         while ((line = inputReader.readLine()) != null) {
             output.append(line + "\n");
+            // Due to sfdx bug: https://github.com/forcedotcom/sfdx-core/issues/162
+            if (line.equals("}")) {
+                return output.toString();
+            }
         }
-        // TODO: Handle errors.
-        //while ((line = errorReader.readLine()) != null) {
-        //    output.append(line + "\n");
-        //    // sfdx bug: https://github.com/forcedotcom/sfdx-core/issues/162
-        //    if (line.equals("}")) {
-        //        return output.toString();
-        //    }
-        //}
 
         return output.toString();
     }
@@ -55,5 +51,9 @@ public class ShellUtils {
     // TODO: Get linux, macOs, other.
     public static OS getRunningOs() {
         return OS.WINDOWS;
+    }
+    
+    public static String[] commandsToArray(String commands) {
+        return commands.split(" ");
     }
 }
